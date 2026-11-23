@@ -63,6 +63,7 @@ std::vector<Room*> HotelSystem::findAvailableRooms(std::chrono::sys_days startsA
             [&room, startsAt, endsAt](const Reservation& reservation) {
                 return &reservation.getRoom() == &room
                     && reservation.getStatus() != ReservationStatus::Cancelled
+                    && reservation.getStatus() != ReservationStatus::CheckedOut
                     && startsAt < reservation.getEndsAt()
                     && reservation.getStartsAt() < endsAt;
             });
@@ -113,14 +114,24 @@ void HotelSystem::checkInGuest(Reservation& reservation) {
     reservation.checkIn();
 }
 
-Invoice& HotelSystem::checkOutGuest(Reservation& reservation) {
+double HotelSystem::checkOutGuest(Reservation& reservation) {
     validateReservation(reservation);
-    if (reservation.getStatus() != ReservationStatus::CheckedIn) {
-        throw std::logic_error("Only a checked-in reservation can be checked out.");
+    reservation.checkOut();
+    return reservation.calculateCost();
+}
+
+Invoice& HotelSystem::issueInvoice(const Reservation& reservation) {
+    validateReservation(reservation);
+    if (reservation.getStatus() != ReservationStatus::CheckedOut) {
+        throw std::logic_error("An invoice can only be issued for a checked-out reservation.");
+    }
+    if (std::any_of(invoices.begin(), invoices.end(), [&reservation](const Invoice& inv) {
+        return inv.getReservationId() == reservation.getId();
+    })) {
+        throw std::logic_error("An invoice has already been issued for this reservation.");
     }
     const int number = static_cast<int>(invoices.size()) + 1;
     invoices.emplace_back(number, std::chrono::system_clock::now(),
                           reservation.getId(), reservation.calculateCost());
-    reservation.checkOut();
     return invoices.back();
 }

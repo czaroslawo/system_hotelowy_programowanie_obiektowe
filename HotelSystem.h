@@ -41,7 +41,7 @@ public:
     void cancelReservation(Reservation& reservation);
     void checkInGuest(Reservation& reservation);
     double checkOutGuest(Reservation& reservation);
-    Invoice& issueInvoice(const Reservation& reservation);v
+    Invoice& issueInvoice(const Reservation& reservation);
 };
 
 #endif
