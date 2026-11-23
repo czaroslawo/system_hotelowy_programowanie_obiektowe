@@ -40,7 +40,8 @@ public:
     void addService(Reservation& reservation, const AdditionalService& service);
     void cancelReservation(Reservation& reservation);
     void checkInGuest(Reservation& reservation);
-    Invoice& checkOutGuest(Reservation& reservation);
+    double checkOutGuest(Reservation& reservation);
+    Invoice& issueInvoice(const Reservation& reservation);v
 };
 
 #endif
